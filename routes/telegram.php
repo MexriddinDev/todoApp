@@ -1,66 +1,46 @@
 <?php
 
 use App\Bot;
-
-use App\User;
-
 use App\Todo;
 
-$update = json_decode(file_get_contents('php://input'));
 
-$chatId = $update->message->chat->id;
+$bot  = new Bot();
+
+$update = json_decode(file_get_contents('php://input')); // Qanday yangilik kelganini olib beradi
+
+$chatID = $update->message->chat->id;
 $text = $update->message->text;
 
-$todo = new Todo();
+$callbackQuery = $update->callback_query;
+$callbackData = $callbackQuery->data;
+$callbackChatID = $callbackQuery->message->chat->id;
+$callbackMessageID = $callbackQuery->message->message_id;
+$callbackUserID = $callbackQuery->from->id;
+$callbackUserName = $callbackQuery->from->username;
 
-$user = new User();
 
-$bot= new Bot();
 
-if ($text == '/start') {
+if ($text == '/start') { // Bu faqatgina quruq starni o'ziga ishlaydi "/start 4" ga ishlamaydi
     $bot->makeRequest('sendMessage', [
-        'chat_id' => $chatId,
-        'text' => "Welcome Todo bot!",
-
+        'chat_id' => $chatID,  // Kimga yuborish kerak
+        'text' => 'Welcome to the Todo App'  // Nima narsa yuborish kerak
     ]);
     exit();
 }
 
-if(mb_stripos($text, '/start') !== false ){
-    $userId=explode('/start', $text)[1];
-
-    $user->setTelegramId($userId, $chatId );
-
+if (mb_stripos($text, '/start') !== false)  // Bu yerda webdan start bosilsa shu yer ishlaydi. "/start 4" Bo'lsa shu yeri ishlashi kerak
+{
+    $userId = explode("/start", $text)[1];
+    $user = new \App\User();
+    $user->setTelegramId($userId, $chatID);
     $bot->makeRequest('sendMessage', [
-        'chat_id' => $chatId,
-        'text'=>'welcome Todo bot (mb_stripos)' . $userId
+        'chat_id' => $chatID,
+        'text' => "MB STRIPOS dan keldi"
     ]);
+}
+
+if ($text == '/tasks') {
+    $bot->sendUserTasks($chatID);
     exit();
 }
 
-
-if ($text == '/help') {
-    $bot->makeRequest('sendMessage', [
-        'chat_id' => $chatId,
-        'text' => "Help text",
-    ]);
-    exit();
-}
- if ($text == '/tasks') {
-     $tasks = $todo->getTodosByTelegramId($chatId);
-     if(!empty($tasks)){
-         $responseText = "Tasks:\n\n";
-         foreach ($tasks as $index => $task) {
-             $responseText .= $index . '. ' . $task['title'] . "\n";
-             $responseText .= $task['due_date'] . "\n";
-             $responseText .= $task['status'] . "\n";
-             $responseText .= "\n============================\n";
-         }
-     }
-     $bot->makeRequest('sendMessage', [
-         'chat_id' => $chatId,
-         'text' => $responseText,
-     ]);
-
-
- }

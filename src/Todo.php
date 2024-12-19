@@ -51,15 +51,15 @@ class Todo{
             ":dueDate" => $dueDate,
         ]);
     }
-    public function getTodosByTelegramId(int $telegramId): array
+    public function getTodoByTelegramId (int $chatId)
     {
-        $query="Select todos. * from todos INNER JOIN users on users.id=todos.user_id WHERE users.telegram_id=:telegramId";
+        $query = "SELECT * FROM todos INNER JOIN users on todos.user_id = users.id WHERE users.telegram_id = :chatId";
         $stmt = $this->pdo->prepare($query);
         $stmt->execute([
-            ":telegramId" => $telegramId,
+            ":chatId" => $chatId
         ]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
     }
+
 
 }
