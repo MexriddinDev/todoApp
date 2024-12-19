@@ -53,12 +53,24 @@ class Todo{
     }
     public function getTodoByTelegramId (int $chatId)
     {
-        $query = "SELECT * FROM todos INNER JOIN users on todos.user_id = users.id WHERE users.telegram_id = :chatId";
+        $query = "SELECT todos.title, todos.status, todos.due_date, todos.id as task_id FROM todos INNER JOIN users on todos.user_id = users.id WHERE users.telegram_id = :chatId";
         $stmt = $this->pdo->prepare($query);
         $stmt->execute([
             ":chatId" => $chatId
         ]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function updateStatus(int $id, string $status): bool
+
+    {
+        $query="Update todos Set status=:status, update_at=NOW() where id=:id";
+        $stmt = $this->pdo->prepare($query);
+        return $stmt->execute([
+            ":id" => $id,
+            ":status" => $status,
+        ]);
+
     }
 
 
